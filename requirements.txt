@@ -1,8 +1,10 @@
-pandas==2.2.2
-matplotlib==3.8.4
+pandas>=2.2.3
+matplotlib>=3.9
 ipywidgets==8.1.2
 ipympl
 galvani
 eclabfiles
-numpy<2
+numpy>=2.1.0
 scipy
+ipykernel
+openpyxl
