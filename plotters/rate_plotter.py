@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
-from matplotlib.ticker import MaxNLocator  # ensures integer ticks on x-axis
+from matplotlib.ticker import MaxNLocator, AutoMinorLocator  # ensures integer ticks on x-axis
 from matplotlib.font_manager import FontProperties  # for computing +1 pt font sizes
 
 def plot_rate_performance(
@@ -17,13 +17,16 @@ def plot_rate_performance(
     c_rate_label_mode: str = "overall",  # "none" | "overall" (default) | "on_top"
     xlim: tuple | None = None,
     ylim: tuple | None = None,
+    alpha: float = 1.0,
 ):
     fig, ax = plt.subplots(figsize=(4, 3))
     cmap = plt.cm.get_cmap(color_scheme) if color_scheme != "default" else None
     colors = []
     for i in range(len(all_groups)):
         key = all_groups[i]["label"]
-        if custom_colors and key in custom_colors:
+        if all_groups[i].get("color"):
+            colors.append(all_groups[i].get("color"))
+        elif custom_colors and key in custom_colors:
             colors.append(custom_colors[key])
         elif cmap:
             colors.append(cmap(i / max(1, len(all_groups)-1)))
@@ -86,7 +89,7 @@ def plot_rate_performance(
             if group_x:
                 cycle_offset = x_vals[-1]
 
-        ax.plot(x_vals, y_vals, 'o-', label=group_label, color=color)
+        ax.plot(x_vals, y_vals, 'o-', label=group_label, color=color, alpha=alpha)
         # Defer annotation drawing until after plotting (to support 'on_top' mode)
         for x, y, label in annotations:
             collected_annotations.append({"x": x, "y": y, "text": label, "color": color})
@@ -104,6 +107,8 @@ def plot_rate_performance(
     ax.grid(grid)
     # Force integer tick labels on the x-axis (cycle numbers are discrete integers)
     ax.xaxis.set_major_locator(MaxNLocator(integer=True))
+    ax.xaxis.set_minor_locator(AutoMinorLocator(2))
+    ax.yaxis.set_minor_locator(AutoMinorLocator(2))
     # Apply user-defined X range if provided
     if xlim is not None and len(xlim) == 2:
         try:

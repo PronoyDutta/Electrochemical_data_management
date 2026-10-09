@@ -40,6 +40,7 @@ def load_gcd_data(project_dir, sample_names, cycle_numbers=None):
 
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
+from matplotlib.ticker import AutoMinorLocator
 
 def plot_gcd_curves(
     groups,
@@ -52,6 +53,7 @@ def plot_gcd_curves(
     legend_draggable: bool = False,
     xlim: tuple | None = None,
     ylim: tuple | None = None,
+    alpha: float = 1.0,
 ):
     # Match the rate plot figure sizing for visual consistency
     fig, ax = plt.subplots(figsize=GCD_FIGSIZE)
@@ -110,7 +112,11 @@ def plot_gcd_curves(
                     color_key = f"{sample}_C{cyc}_H{int(half)}_{group_label}"
                 else:
                     color_key = f"{sample}_C{cyc}_{group_label}"
-                color = color_map.get(color_key, None)
+                
+                if group.get("color"):
+                    color = group.get("color")
+                else:
+                    color = color_map.get(color_key, None)
                 label = f"{group_label}" if half == 1 else None
                 if "time_s" in subdf.columns:
                     subdf = subdf.sort_values("time_s")
@@ -132,14 +138,16 @@ def plot_gcd_curves(
                 x = np.abs(q - q[0]) / mass_g
 
                 if color is not None:
-                    ax.plot(x, v, color=color, label=label)
+                    ax.plot(x, v, color=color, label=label, alpha=alpha)
                 else:
-                    ax.plot(x, v, label=label)
+                    ax.plot(x, v, label=label, alpha=alpha)
 
     ax.set_xlabel("Specific Capacity (mAh g$^{-1}$)", fontsize=GCD_AXIS_LABEL_FONTSIZE)
-    ax.set_ylabel("Potential (V vs. Li/Li+)", fontsize=GCD_AXIS_LABEL_FONTSIZE)
+    ax.set_ylabel("Potential (V vs. Li/Li$^{+}$)", fontsize=GCD_AXIS_LABEL_FONTSIZE)
     ax.set_title("GCD Curves", fontsize=GCD_TITLE_FONTSIZE)
     ax.tick_params(axis='both', labelsize=GCD_TICK_LABEL_FONTSIZE)
+    ax.xaxis.set_minor_locator(AutoMinorLocator(2))
+    ax.yaxis.set_minor_locator(AutoMinorLocator(2))
     # Apply user-defined axis ranges if provided
     try:
         if xlim is not None and len(xlim) == 2:
