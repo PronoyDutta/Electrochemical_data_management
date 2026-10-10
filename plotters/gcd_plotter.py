@@ -117,7 +117,11 @@ def plot_gcd_curves(
                     color = group.get("color")
                 else:
                     color = color_map.get(color_key, None)
-                label = f"{group_label}" if half == 1 else None
+                if half == 1 and not group.get('_legend_added'):
+                    label = group_label
+                    group['_legend_added'] = True
+                else:
+                    label = f"_{group_label}_C{cyc}_H{int(half)}"
                 if "time_s" in subdf.columns:
                     subdf = subdf.sort_values("time_s")
 

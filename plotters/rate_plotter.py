@@ -20,7 +20,17 @@ def plot_rate_performance(
     alpha: float = 1.0,
 ):
     fig, ax = plt.subplots(figsize=(4, 3))
-    cmap = plt.cm.get_cmap(color_scheme) if color_scheme != "default" else None
+    cmap = plt.cm.get_cmap(color_scheme, max(len(all_groups), 1)) if color_scheme != "default" else None
+    
+    default_cycle_colors = None
+    if color_scheme == "default":
+        try:
+            prop_cycle = plt.rcParams.get('axes.prop_cycle', None)
+            if prop_cycle is not None:
+                default_cycle_colors = prop_cycle.by_key().get('color', None)
+        except Exception:
+            pass
+
     colors = []
     for i in range(len(all_groups)):
         key = all_groups[i]["label"]
@@ -28,8 +38,10 @@ def plot_rate_performance(
             colors.append(all_groups[i].get("color"))
         elif custom_colors and key in custom_colors:
             colors.append(custom_colors[key])
-        elif cmap:
-            colors.append(cmap(i / max(1, len(all_groups)-1)))
+        elif cmap is not None:
+            colors.append(cmap(i))
+        elif default_cycle_colors:
+            colors.append(default_cycle_colors[i % len(default_cycle_colors)])
         else:
             colors.append(None)
 
@@ -89,7 +101,7 @@ def plot_rate_performance(
             if group_x:
                 cycle_offset = x_vals[-1]
 
-        ax.plot(x_vals, y_vals, 'o-', label=group_label, color=color, alpha=alpha)
+        ax.plot(x_vals, y_vals, 'o-', label=group_label, color=color, alpha=alpha, markersize=6)
         # Defer annotation drawing until after plotting (to support 'on_top' mode)
         for x, y, label in annotations:
             collected_annotations.append({"x": x, "y": y, "text": label, "color": color})
