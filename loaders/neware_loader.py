@@ -21,14 +21,18 @@ def load_neware_files(file_path: str, output_dir: str) -> dict:
     # Sanitize column headers
     df.columns = df.columns.str.strip()
 
-    # Validate required columns
-    required_cols = ["Step Type", "Total Time", "Current(A)", "Voltage(V)", "Capacity(Ah)"]
-    for col in required_cols:
+    # Validate required columns (flexible for Current(mA) or Current(A))
+    curr_col = "Current(mA)" if "Current(mA)" in df.columns else ("Current(A)" if "Current(A)" in df.columns else None)
+    cap_col = "Capacity(Ah)" if "Capacity(Ah)" in df.columns else ("Capacity(mAh)" if "Capacity(mAh)" in df.columns else None)
+
+    if curr_col is None:
+        raise ValueError("Required column 'Current(mA)' or 'Current(A)' is missing in file.")
+    if cap_col is None:
+        raise ValueError("Required column 'Capacity(Ah)' or 'Capacity(mAh)' is missing in file.")
+
+    for col in ["Step Type", "Total Time", "Voltage(V)"]:
         if col not in df.columns:
             raise ValueError(f"Required column '{col}' is missing in file.")
-
-    # Keep only necessary columns
-    df = df[required_cols].copy()
 
     # Convert time to seconds
     def hms_to_seconds(t):
@@ -39,14 +43,14 @@ def load_neware_files(file_path: str, output_dir: str) -> dict:
             return None
 
     df["time_s"] = df["Total Time"].apply(hms_to_seconds)
-    df["current_mA"] = df["Current(A)"] * 1000
+    df["current_mA"] = df[curr_col] if curr_col == "Current(mA)" else df[curr_col] * 1000.0
     # Tolerance-based binning of current
     tol = 0.1  # mA
     df["abs_current"] = df["current_mA"].abs()
     df["abs_current_binned"] = (df["abs_current"] / tol).round() * tol
 
     df["voltage_V"] = df["Voltage(V)"]
-    df["capacity_mAh"] = df["Capacity(Ah)"] * 1000
+    df["capacity_mAh"] = df[cap_col] * 1000.0 if cap_col == "Capacity(Ah)" else df[cap_col]
     df["is_rest"] = df["Step Type"].str.lower().str.contains("rest")
 
     # Assign block_id where abs_current changes (excluding rest)

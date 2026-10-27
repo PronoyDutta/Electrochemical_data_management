@@ -1,3 +1,5 @@
 # plotters/__init__.py
 
-# This file lets Python treat plotters/ as a package.
+from . import gcd_plotter
+from . import rate_plotter
+from . import stability_plotter

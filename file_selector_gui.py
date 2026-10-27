@@ -74,7 +74,7 @@ class SampleAdderApp:
 
         ttk.Label(frame, text="Test Type").grid(row=len(self.entries), column=0, sticky="w", padx=5, pady=2)
         self.test_type_var = tk.StringVar(value="GCD")
-        test_type_menu = ttk.Combobox(frame, textvariable=self.test_type_var, values=["GCD", "CV", "EIS", "GITT", "Rate", "OCP", "Pulsed technique"], state="readonly")
+        test_type_menu = ttk.Combobox(frame, textvariable=self.test_type_var, values=["GCD", "CV", "EIS", "GITT", "Rate", "Stability", "OCP", "Pulsed technique"], state="readonly")
         test_type_menu.grid(row=len(self.entries), column=1, padx=5, pady=2)
         self.entries["test_type"] = self.test_type_var
 
@@ -152,7 +152,7 @@ class SampleAdderApp:
 
         self.loaded_data = {}
 
-        if source == "BioLogic" and self.test_type_var.get() == "GCD":
+        if source == "BioLogic" and self.test_type_var.get() in ["GCD", "Stability"]:
             self.loaded_data = load_biologic_gcd_mpr(self.file_paths)
             summary = ""
             for fname, result in self.loaded_data.items():
@@ -244,7 +244,7 @@ class SampleAdderApp:
                     progress_bar["value"] = i + 1
                     self.root.update_idletasks()
 
-            elif self.source_var.get() == "Neware" and test_type in ["GCD", "Rate"]:
+            elif self.source_var.get() == "Neware" and test_type in ["GCD", "Rate", "Stability"]:
                 summary = ""
                 for i, f in enumerate(self.file_paths):
                     results = load_neware_files(f, test_folder)
