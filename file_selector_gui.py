@@ -152,7 +152,7 @@ class SampleAdderApp:
 
         self.loaded_data = {}
 
-        if source == "BioLogic" and self.test_type_var.get() in ["GCD", "Stability"]:
+        if source == "BioLogic" and self.test_type_var.get() in ["GCD", "Rate", "Stability"]:
             self.loaded_data = load_biologic_gcd_mpr(self.file_paths)
             summary = ""
             for fname, result in self.loaded_data.items():
@@ -226,7 +226,11 @@ class SampleAdderApp:
         self.root.update_idletasks()
 
         try:
-            if self.source_var.get() == "BioLogic" and test_type == "GCD":
+            if self.source_var.get() == "BioLogic" and test_type in ["GCD", "Rate", "Stability"]:
+                if not self.loaded_data or len(self.loaded_data) != len(self.file_paths):
+                    self.loaded_data = load_biologic_gcd_mpr(self.file_paths)
+
+                error_files = []
                 for i, (fname, result) in enumerate(self.loaded_data.items()):
                     if result["error"] is None:
                         data = result["data"]
@@ -241,8 +245,13 @@ class SampleAdderApp:
                                     writer.writerow(row)
                         else:
                             data.to_csv(out_path, index=False)
+                    else:
+                        error_files.append(f"{os.path.basename(fname)}: {result['error']}")
                     progress_bar["value"] = i + 1
                     self.root.update_idletasks()
+
+                if error_files:
+                    messagebox.showwarning("File Processing Warnings", "The following files could not be processed:\n" + "\n".join(error_files))
 
             elif self.source_var.get() == "Neware" and test_type in ["GCD", "Rate", "Stability"]:
                 summary = ""
